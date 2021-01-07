@@ -44,7 +44,7 @@ var collectCmd = &cobra.Command{
 		// fileList = append(fileList, filepath.Join(logDir, "tidb.log"))
 
 		// slow log file
-		slowFileDir := filepath.Join(logDir, slowLogFileNamePrefix+utils.GetSlowLogFileSuffix())
+		slowFileDir := filepath.Join(logDir, slowLogFileNamePrefix+utils.GetSlowLogFileSuffix()+".log")
 
 		slowFile, err := os.OpenFile(slowFileDir, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 		if err != nil {

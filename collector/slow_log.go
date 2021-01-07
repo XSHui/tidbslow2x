@@ -18,33 +18,19 @@ package collector
 import (
 	"fmt"
 	"strings"
+
+	"github.com/XSHui/tidbslow2x/utils"
 )
 
 // FormatSlowLogToTidb4 format tidb-v2.x slow log to tidb-v4.x
-// TODO: use template
-// TODO: time format
-// TODO: Query_Time unit
 func FormatSlowLogToTidb4(slowKv map[string]string) string {
+	if date, ok := slowKv["Date"]; ok {
+		slowKv["Date"] = strings.Replace(date, "/", "-", -1)
+	}
 	if sql, ok := slowKv["Sql"]; ok {
-		sql = strings.Replace(sql, "\n", "", -1)
-		slowKv["Sql"] = sql
+		slowKv["Sql"] = strings.Replace(sql, "\n", "", -1)
 	}
-	if slowKv["ProcessTime"] == "" {
-		slowKv["ProcessTime"] = "0ms"
-	}
-	if slowKv["WaitTime"] == "" {
-		slowKv["WaitTime"] = "0ms"
-	}
-	if slowKv["RequestCount"] == "" {
-		slowKv["RequestCount"] = "0"
-	}
-	if slowKv["TotalKeys"] == "" {
-		slowKv["TotalKeys"] = "0"
-	}
-	if slowKv["ProcessedKeys"] == "" {
-		slowKv["ProcessedKeys"] = "0"
-	}
-	return fmt.Sprintf(`# Time: 20%s-%s-%sT%s+08:00
+	return fmt.Sprintf(`# Time: %sT%s+08:00
 # Txn_start_ts: %s
 # User@Host: %s
 # Conn_ID: %s
@@ -52,12 +38,16 @@ func FormatSlowLogToTidb4(slowKv map[string]string) string {
 # Process_time: %s Wait_time: %s Request_count: %s Total_keys: %s Process_keys: %s
 # Succ: %s
 %s;
-`, slowKv["MONTHDAY"], slowKv["MONTHNUM"], slowKv["YEAR"], slowKv["TIME"],
+`, slowKv["Date"], slowKv["Time"],
 		slowKv["TxnStartTs"],
 		slowKv["User"],
 		slowKv["Con"],
-		slowKv["CostTime"],
-		slowKv["ProcessTime"], slowKv["WaitTime"], slowKv["RequestCount"], slowKv["TotalKeys"], slowKv["ProcessedKeys"],
+		utils.SlowLogTimeToSecond(slowKv["CostTime"]),
+		utils.SlowLogTimeToSecond(slowKv["ProcessTime"]),
+		utils.SlowLogTimeToSecond(slowKv["WaitTime"]),
+		slowKv["RequestCount"],
+		slowKv["TotalKeys"],
+		slowKv["ProcessedKeys"],
 		slowKv["Succ"],
 		slowKv["Sql"])
 }
