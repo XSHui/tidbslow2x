@@ -40,7 +40,9 @@ var collectCmd = &cobra.Command{
 		logDir, startDate, endDate := loadFlags(cmd)
 		// tidb log file
 		fileList := collector.ListFiles(logDir, startDate, endDate)
-		fmt.Println(fileList)
+		// TODO: opt
+		// fileList = append(fileList, filepath.Join(logDir, "tidb.log"))
+
 		// slow log file
 		slowFileDir := filepath.Join(logDir, slowLogFileNamePrefix+utils.GetSlowLogFileSuffix())
 

@@ -23,7 +23,11 @@ import (
 	"os"
 	"strings"
 	"sync"
+
+	"github.com/vjeantet/grok"
 )
+
+var pattern string = `%{DATESTAMP:Time} %{DATA:File} \[%{LOGLEVEL:Level}\] \[SLOW_QUERY\] cost_time:%{DATA:CostTime}( process_time:%{DATA:ProcessTime} wait_time:%{DATA:WaitTime}| process_time:%{DATA:ProcessTime}| wait_time:%{DATA:WaitTime}) request_count:%{DATA:RequestCount}( total_keys:%{DATA:TotalKeys} processed_keys:%{DATA:ProcessedKeys}| total_keys:%{DATA:TotalKeys}) succ:%{DATA:Succ} con:%{DATA:Con} user:%{GREEDYDATA:User} txn_start_ts:%{DATA:TxnStartTs} database:(%{DATA:Database}) (table_ids:(%{DATA:TableIds}),index_ids:(%{DATA:IndexIds})|table_ids:(%{DATA:TableIds})),sql:%{GREEDYDATA:Sql} `
 
 // SlowLogCollector collect slow log from tidb log
 func SlowLogCollector(fileName string, slowLogFile *os.File) error {
@@ -113,8 +117,15 @@ func processChunk(chunk []byte, linesPool, stringPool *sync.Pool, slowLogFile *o
 // TODO: match slow log to tidb-v4.0.0
 func lineProcess(line string, slowLogFile *os.File) {
 	if strings.Contains(line, slowLogLabel) {
+		rok, _ := grok.New()
+		rokMap, err := rok.Parse(pattern, line)
+		if err != nil || len(rokMap) == 0 {
+			// TODO: load to file
+			fmt.Println(line)
+			return
+		}
 		// write to slow log file
-		_, err := slowLogFile.Write([]byte(line + "\n"))
+		_, err = slowLogFile.Write([]byte(FormatSlowLogToTidb4(rokMap)))
 		if err != nil {
 			panic(err)
 		}
