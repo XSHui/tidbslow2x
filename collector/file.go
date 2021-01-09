@@ -20,6 +20,8 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"strings"
+
+	"github.com/XSHui/tidbslow2x/utils"
 )
 
 // ListFiles list all valid tidb log file in dir
@@ -30,11 +32,36 @@ func ListFiles(dir string, start, end string) []string {
 	}
 	fileList := []string{}
 	for _, file := range files {
+		// TODO: deal with *.log only
+		if file.Name() == "tidb_stderr.log" || file.Name() == "tidbslow2x" {
+			continue
+		}
 		if strings.HasPrefix(file.Name(), tidbLogPrefix) {
-			// TODO: start and end optimize
-			if file.Name() >= fmt.Sprintf("%s-%s", tidbLogPrefix, start) &&
-				file.Name() <= fmt.Sprintf("%s-%s", tidbLogPrefix, end) {
-				fileList = append(fileList, filepath.Join(dir, file.Name()))
+			if start == "" && end == "" {
+				if file.Name() >= fmt.Sprintf("%s-%s", tidbLogPrefix, "2006-01-02T15-04-05") {
+					fileList = append(fileList, filepath.Join(dir, file.Name()))
+				}
+			} else if start == "" && end != "" {
+				if file.Name() == "tidb.log" {
+					if end > utils.GetCurrentTimeStr() {
+						fileList = append(fileList, filepath.Join(dir, file.Name()))
+					}
+				} else if file.Name() <= fmt.Sprintf("%s-%s", tidbLogPrefix, end) {
+					fileList = append(fileList, filepath.Join(dir, file.Name()))
+				}
+			} else if start != "" && end == "" {
+				if file.Name() >= fmt.Sprintf("%s-%s", tidbLogPrefix, start) {
+					fileList = append(fileList, filepath.Join(dir, file.Name()))
+				}
+			} else {
+				if file.Name() == "tidb.log" {
+					if end > utils.GetCurrentTimeStr() {
+						fileList = append(fileList, filepath.Join(dir, file.Name()))
+					}
+				} else if file.Name() >= fmt.Sprintf("%s-%s", tidbLogPrefix, start) &&
+					file.Name() <= fmt.Sprintf("%s-%s", tidbLogPrefix, end) {
+					fileList = append(fileList, filepath.Join(dir, file.Name()))
+				}
 			}
 		}
 	}

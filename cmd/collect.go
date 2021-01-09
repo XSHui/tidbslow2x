@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -40,8 +41,7 @@ var collectCmd = &cobra.Command{
 		logDir, startDate, endDate := loadFlags(cmd)
 		// tidb log file
 		fileList := collector.ListFiles(logDir, startDate, endDate)
-		// TODO: opt
-		// fileList = append(fileList, filepath.Join(logDir, "tidb.log"))
+		fmt.Println(fileList)
 
 		// slow log file
 		slowFileDir := filepath.Join(logDir, slowLogFileNamePrefix+utils.GetSlowLogFileSuffix()+".log")
@@ -67,19 +67,33 @@ func loadFlags(cmd *cobra.Command) (logDir string, startDate string, endDate str
 		fmt.Printf("log_dir error: %v", err)
 		os.Exit(1)
 	}
+	if logDir == "" {
+		logDir = "./"
+	}
+
 	startDate, err = cmd.Flags().GetString("start_date")
 	if err != nil {
 		fmt.Printf("start_date error: %v", err)
 		os.Exit(1)
 	}
-	// TODO: start date format check
+	if _, err := time.Parse("2006-01-02T15-04-05", startDate); err != nil && startDate != "" {
+		fmt.Printf("start_date format error: %v", err)
+		os.Exit(1)
+	}
+
 	endDate, err = cmd.Flags().GetString("end_date")
 	if err != nil {
 		fmt.Printf("end_date error: %v", err)
 		os.Exit(1)
 	}
-	// TODO: end date format check
-	// TODO: start and end date validity check
+	if _, err := time.Parse("2006-01-02T15-04-05", endDate); err != nil && endDate != "" {
+		fmt.Printf("end_date format error: %v", err)
+		os.Exit(1)
+	}
+	if startDate != "" && endDate != "" && startDate > endDate {
+		fmt.Println("start_date should be less than end_date")
+		os.Exit(1)
+	}
 	return
 }
 

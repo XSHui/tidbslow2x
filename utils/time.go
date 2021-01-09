@@ -27,6 +27,11 @@ func GetSlowLogFileSuffix() string {
 	return time.Now().Format("2006-01-02T15-04-05")
 }
 
+// GetCurrentTimeStr return current time with log file name format
+func GetCurrentTimeStr() string {
+	return time.Now().Format("2006-01-02T15-04-05")
+}
+
 // SlowLogTimeToSecond convert slow log time to seconds
 // 5.5s  --> 5.5
 // 600ms --> 0.6

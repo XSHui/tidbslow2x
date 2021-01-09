@@ -28,8 +28,6 @@ import (
 	"github.com/vjeantet/grok"
 )
 
-//var pattern string = `%{DATA:Date} %{DATA:Time} %{DATA:File} \[%{LOGLEVEL:Level}\] \[SLOW_QUERY\] cost_time:%{DATA:CostTime}( process_time:%{DATA:ProcessTime} wait_time:%{DATA:WaitTime}| process_time:%{DATA:ProcessTime}| wait_time:%{DATA:WaitTime}) request_count:%{DATA:RequestCount}( total_keys:%{DATA:TotalKeys} processed_keys:%{DATA:ProcessedKeys}| total_keys:%{DATA:TotalKeys}) succ:%{DATA:Succ} con:%{DATA:Con} user:%{GREEDYDATA:User} txn_start_ts:%{DATA:TxnStartTs} database:(%{DATA:Database}) (table_ids:(%{DATA:TableIds}),index_ids:(%{DATA:IndexIds})|table_ids:(%{DATA:TableIds})),sql:%{GREEDYDATA:Sql}`
-//var pattern string = `%{DATA:Date} %{DATA:Time} %{DATA:File} \[%{LOGLEVEL:Level}\] \[SLOW_QUERY\] %{GREEDYDATA:Fields},sql:%{GREEDYDATA:Sql}`
 var pattern string = `%{DATA:Date} %{DATA:Time} %{DATA:File} \[%{LOGLEVEL:Level}\] \[SLOW_QUERY\] %{GREEDYDATA:Fields} database:%{GREEDYDATA:DatabaseFields}sql:%{GREEDYDATA:Sql}`
 
 // SlowLogCollector collect slow log from tidb log
@@ -117,12 +115,12 @@ func processChunk(chunk []byte, linesPool, stringPool *sync.Pool, slowLogFile *o
 	logsSlice = nil
 }
 
-// TODO: match slow log to tidb-v4.0.0
 func lineProcess(line string, slowLogFile *os.File) {
 	if strings.Contains(line, slowLogLabel) {
 		rok, _ := grok.New()
 		rokMap, err := rok.Parse(pattern, line)
 		if err != nil || len(rokMap) == 0 {
+			fmt.Println(err)
 			fmt.Println(line)
 			return
 		}
