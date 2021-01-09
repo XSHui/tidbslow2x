@@ -36,18 +36,20 @@ func FormatSlowLogToTidb4(slowKv map[string]string) string {
 # Conn_ID: %s
 # Query_time: %s
 # Process_time: %s Wait_time: %s Request_count: %s Total_keys: %s Process_keys: %s
+# DB: %s
 # Succ: %s
 %s;
 `, slowKv["Date"], slowKv["Time"],
-		slowKv["TxnStartTs"],
-		slowKv["User"],
-		slowKv["Con"],
-		utils.SlowLogTimeToSecond(slowKv["CostTime"]),
-		utils.SlowLogTimeToSecond(slowKv["ProcessTime"]),
-		utils.SlowLogTimeToSecond(slowKv["WaitTime"]),
-		slowKv["RequestCount"],
-		slowKv["TotalKeys"],
-		slowKv["ProcessedKeys"],
-		slowKv["Succ"],
+		slowKv["txn_start_ts"],
+		slowKv["user"],
+		slowKv["con"],
+		utils.SlowLogTimeToSecond(slowKv["cost_time"]),
+		utils.SlowLogTimeToSecond(slowKv["process_time"]),
+		utils.SlowLogTimeToSecond(slowKv["wait_time"]),
+		slowKv["request_count"],
+		slowKv["total_keys"],
+		slowKv["processed_keys"],
+		slowKv["database"],
+		slowKv["succ:true"],
 		slowKv["Sql"])
 }
